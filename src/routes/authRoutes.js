@@ -8,6 +8,7 @@ const {getUserDetails} = require("../controllers/authController");
 const {getAllUsers} = require("../controllers/authController");
 const {deleteUser} = require("../controllers/authController");
 const authMiddleware = require("../middleware/authMiddleware");
+
 const router = express.Router();
 
 /**
@@ -180,11 +181,12 @@ router.post("/reset-password", resetPassword);
  *         description: Server error
  */
 
-router.get("/profile", authMiddleware, getUserDetails);
+router.get("/profile",authMiddleware,getUserDetails)
 
 
 
 router.get("/users",getAllUsers);
+
 router.delete("/delete/:id",deleteUser)
 
 module.exports = router;
