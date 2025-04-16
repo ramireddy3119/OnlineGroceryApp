@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const  User  = require("../models/User");
+const User = require("../models/User");
 
 // ✅ JWT Verification Middleware
 const authMiddleware = async (req, res, next) => {
@@ -20,29 +20,46 @@ const authMiddleware = async (req, res, next) => {
     console.log("User from token:", req.user);
     next();
   } catch (error) {
-    console.error("JWT Verification Error:", error.message); // Add this
+    console.error("JWT Verification Error:", error.message);
     return res.status(401).json({ message: error.message });
   }
 };
 
-
-// ✅ Role-based Access Control
+// ✅ Specific Role Guards
 function isVendor(req, res, next) {
-  if (!req.user ||   req.user.role !== "vendor") return res.status(403).json({ error: "Access denied: Vendor only" });
+  if (!req.user || req.user.role !== "vendor") {
+    return res.status(403).json({ error: "Access denied: Vendor only" });
+  }
   next();
 }
 
 function isAdmin(req, res, next) {
-  if (req.user.role !== "admin") return res.status(403).json({ error: "Access denied: Admin only" });
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ error: "Access denied: Admin only" });
+  }
   next();
 }
 
 function isCustomer(req, res, next) {
-  if (req.user.role !== "customer") return res.status(403).json({ error: "Access denied: Customer only" });
+  if (req.user.role !== "customer") {
+    return res.status(403).json({ error: "Access denied: Customer only" });
+  }
   next();
+}
+
+// ✅ Unified Role Authorization Middleware
+function authorizeRole(roles = []) {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ error: "Access denied: Insufficient role" });
+    }
+    next();
+  };
 }
 
 // ✅ Clean consistent export
 module.exports = authMiddleware;
 module.exports.isVendor = isVendor;
-module.exports.isAdmin = isAdmin; 
+module.exports.isAdmin = isAdmin;
+module.exports.isCustomer = isCustomer;
+module.exports.authorizeRole = authorizeRole;

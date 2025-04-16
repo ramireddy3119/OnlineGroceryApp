@@ -2,19 +2,56 @@ const express = require("express");
 const router = express.Router();
 const productController = require("../controllers/ProductController");
 const authMiddleware = require("../middleware/authMiddleware");
+const {authorizeRole} = require("../middleware/authMiddleware");
+const upload = require("../middleware/cloudinaryUpload");
 
-const { isVendor, isAdmin } = require("../middleware/authMiddleware");
+// Admin or Vendor can upload
+router.post(
+  "/upload",
+  authMiddleware,
+  authorizeRole(["admin", "vendor"]),
+  upload.single("image"), // handle image upload
+  productController.createProduct
+);
 
-// Vendor routes
-router.post("/", authMiddleware, isVendor, productController.createProduct);
-router.put("/:id", authMiddleware, isVendor, productController.updateProduct);
-router.delete("/:id", authMiddleware, isVendor, productController.deleteProduct);
-router.get("/vendor", authMiddleware, isVendor, productController.getVendorProducts);
+// Admin or Vendor can update their own product
+router.put(
+  "update/:id",
+  authMiddleware,
+  authorizeRole(["admin", "vendor"]),
+  upload.single("image"),
+  productController.updateProduct
+);
 
-// Public route
+// Admin or Vendor can delete their own product
+router.delete(
+  "delete/:id",
+  authMiddleware,
+  authorizeRole(["admin", "vendor"]),
+  productController.deleteProduct
+);
+
+// Vendor can fetch only their products
+router.get(
+  "/my-products",
+  authMiddleware,
+  authorizeRole(["vendor"]),
+  productController.getVendorProducts
+);
+
+// Public products route (optional)
 router.get("/", productController.getAllProducts);
 
-// Admin-only route
-router.get("/admin", authMiddleware, isAdmin, productController.getAllProductsAdmin);
+// Admin can fetch all products with vendor info
+router.get(
+  "/admin/all",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  productController.getAllProductsAdmin
+);
+
+router.get("/category/:category",productController.getProductBycategory);
+
+
 
 module.exports = router;

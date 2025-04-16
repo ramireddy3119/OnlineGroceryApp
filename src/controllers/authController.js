@@ -17,31 +17,38 @@ const transporter = nodemailer.createTransport({
 
 exports.registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-    if(!name || !email || !password){
-      return res.status(400).json({error:"All fields are required"})
+    const { name, email, password, role = 'customer' } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: "All fields are required" });
     }
 
     // Check if user exists
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
-      return res.status(400).json({ error: "Email already exists" });
+      return res.status(409).json({ error: "Email already exists" });
     }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
-    const newUser = await User.create({ name, email, password: hashedPassword });
+    // Create user with role
+    const newUser = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      role,
+    });
 
     res.status(201).json({
       message: "User registered successfully",
-      user: { id: newUser.id, name: newUser.name, email: newUser.email },
+      user: { id: newUser.id, name: newUser.name, email: newUser.email, role: newUser.role },
     });
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 
 exports.loginUser = async (req, res) => {
