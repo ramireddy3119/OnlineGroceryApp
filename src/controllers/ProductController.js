@@ -40,7 +40,10 @@ exports.createProduct = async (req, res) => {
 // 📌 Update Product (only by uploader)
 exports.updateProduct = async (req, res) => {
   try {
-    const product = await Product.findOne({ where: { id: req.params.id, vendorId: req.user.id } });
+    console.log("User ID:", req.user.id);
+    console.log("Product ID:", req.params.id);
+
+    const product = await Product.findOne({ where: { id: req.params.id} });
     if (!product) return res.status(404).json({ error: "Product not found." });
 
     const updateData = {
@@ -59,19 +62,33 @@ exports.updateProduct = async (req, res) => {
   }
 };
 
-// 📌 Delete Product (only by uploader)
+
+//📌 Soft Delete Product (only by uploader)
 exports.deleteProduct = async (req, res) => {
   try {
-    const product = await Product.findOne({ where: { id: req.params.id, vendorId: req.user.id } });
-    if (!product) return res.status(404).json({ error: "Product not found." });
+    console.log("Id", req.params.id);
 
-    await product.destroy();
-    res.json({ message: "Product deleted." });
+    // Find the product by its ID
+    const product = await Product.findOne({ where: { id: req.params.id } });
+
+    if (!product) {
+      return res.status(404).json({ error: "Product not found." });
+    }
+
+    // Soft delete by setting isDeleted to true
+    product.isDeleted = true;
+
+    // Save the updated product
+    await product.save();
+
+    res.json({ message: "Product marked as deleted." });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Delete failed." });
   }
 };
+
+
 
 // 📌 Get All Products by Vendor
 exports.getVendorProducts = async (req, res) => {
@@ -86,7 +103,7 @@ exports.getVendorProducts = async (req, res) => {
 // 📌 Get All Products (Public)
 exports.getAllProducts = async (req, res) => {
   try {
-    const products = await Product.findAll();
+    const products = await Product.findAll({ where: { isDeleted: false }});
     res.json(products);
   } catch (err) {
     res.status(500).json({ error: "Fetch failed." });

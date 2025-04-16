@@ -28,6 +28,10 @@ const Product = sequelize.define("Product", {
       model: User,
       key: 'id',
     },
+  },
+  isDeleted: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false, // Default to false (not deleted)
   }
 });
 

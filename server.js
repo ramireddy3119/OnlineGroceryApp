@@ -23,7 +23,7 @@ app.use("/orders", orderRoutes);
 app.use("/cart", cartRoutes);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 // Sync Database & Start Server
-sequelize.sync().then(() => {
+sequelize.sync({ alter: true }).then(() => {
   console.log("Database connected!");
   app.listen(5000, () => console.log("Server running on port 5000"));
 });

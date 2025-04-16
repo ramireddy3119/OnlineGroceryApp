@@ -16,7 +16,7 @@ router.post(
 
 // Admin or Vendor can update their own product
 router.put(
-  "update/:id",
+  "/update/:id",
   authMiddleware,
   authorizeRole(["admin", "vendor"]),
   upload.single("image"),
@@ -25,7 +25,7 @@ router.put(
 
 // Admin or Vendor can delete their own product
 router.delete(
-  "delete/:id",
+  "/delete/:id",
   authMiddleware,
   authorizeRole(["admin", "vendor"]),
   productController.deleteProduct

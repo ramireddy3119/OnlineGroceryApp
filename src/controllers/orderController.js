@@ -63,27 +63,57 @@ exports.placeOrder = async (req, res) => {
 };
 
 // Get Orders of current user
+// exports.getUserOrders = async (req, res) => {
+//     try {
+//       const orders = await Order.findAll({
+//         where: { userId: req.user.id },
+//         include: [
+//           {
+//             model: OrderItem,
+//             as: "orderItems",
+//             include: [
+//               {
+//                 model: Product,
+//                 as: "product", // ✅ Match this with the alias from your association
+//                 attributes: ["id", "name", "price", "imageUrl"],
+//               },
+//             ],
+//           },
+//         ],
+//       });
+//       res.json(orders);
+//     } catch (err) {
+//       console.error(err); // ✅ log error for debugging
+//       res.status(500).json({ message: "Failed to fetch orders" });
+//     }
+//   };  
+
+
 exports.getUserOrders = async (req, res) => {
-    try {
-      const orders = await Order.findAll({
-        where: { userId: req.user.id },
-        include: [
-          {
-            model: OrderItem,
-            as: "orderItems",
-            include: [
-              {
-                model: Product,
-                as: "product", // ✅ Match this with the alias from your association
-                attributes: ["id", "name", "price", "imageUrl"],
-              },
-            ],
-          },
-        ],
-      });
-      res.json(orders);
-    } catch (err) {
-      console.error(err); // ✅ log error for debugging
-      res.status(500).json({ message: "Failed to fetch orders" });
-    }
-  };  
+  try {
+    const orders = await Order.findAll({
+      where: { userId: req.user.id },
+      attributes: ['id', 'totalAmount'],
+      include: [
+        {
+          model: OrderItem,
+          as: "orderItems",
+          attributes: ['id', 'quantity', 'price'],
+          include: [
+            {
+              model: Product,
+              as: "product",
+              attributes: ['id', 'name', 'price', 'imageUrl'],
+            },
+          ],
+        },
+      ],
+      order: [['createdAt', 'DESC']], // optional: newest first
+    });
+
+    res.json(orders);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch orders" });
+  }
+};
